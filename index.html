@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ช่วยคิดนร๊า - Cost & Pricing Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#FF6B6B', // Red-pink
+                        secondary: '#4ECDC4', // Teal
+                        accent1: '#FFE66D', // Yellow
+                        accent2: '#1A535C', // Dark teal
+                        bglight: '#F7FFF7', // Very light mint
+                        formbg: '#FFF3E0', // Light orange for form section
+                        resultbg: '#E0F7FA', // Light blue for result section
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styles for extra pop */
+        body {
+            background-color: #f0fdf4;
+            background-image: radial-gradient(#4ECDC4 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1), border: 2px solid rgba(255,255,255,0.5);
+        }
+
+        .input-group label {
+            color: #1A535C;
+            font-weight: 500;
+        }
+        
+        .input-field {
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .input-field:focus {
+            border-color: #4ECDC4;
+            box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.2);
+            outline: none;
+        }
+
+        .result-row {
+            transition: all 0.2s ease;
+        }
+        .result-row:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.01);
+            border-radius: 8px;
+        }
+
+        .btn-custom {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+        .btn-custom:active {
+            transform: translateY(0);
+        }
+
+        /* Number input arrows styling */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type="number"] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen p-4 md:p-8 flex items-center justify-center">
+
+    <div class="max-w-4xl w-full mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary inline-block mb-2 drop-shadow-sm">
+                <i class="fa-solid fa-calculator mr-2 text-primary"></i>
+                ช่วยคิดนร๊า
+            </h1>
+            <h2 class="text-2xl font-semibold text-accent2">Cost & Pricing Calculator</h2>
+            <p class="text-gray-500 mt-2 text-sm">เครื่องมือคำนวณต้นทุนและตั้งราคาขาย</p>
+        </header>
+
+        <div class="glass-panel overflow-hidden border-t-8 border-t-secondary shadow-2xl">
+            
+            <div class="flex flex-col md:flex-row">
+                
+                <!-- ส่วนที่ต้องกรอก -->
+                <div class="w-full md:w-1/2 p-6 md:p-8 bg-formbg/50 border-b md:border-b-0 md:border-r border-gray-200">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-primary text-white p-2 rounded-lg shadow-md mr-3">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-primary">ส่วนที่ต้องกรอก</h3>
+                    </div>
+
+                    <form id="calculatorForm" class="space-y-4">
+                        
+                        <!-- ชื่อสินค้า -->
+                        <div class="input-group">
+                            <label for="productName" class="block text-sm mb-1 text-gray-700">ชื่อสินค้า <span class="text-xs text-gray-500 font-normal">*(จำเป็น)</span></label>
+                            <input type="text" id="productName" placeholder="เช่น สติ๊กเกอร์ไดคัทลายแมว" class="w-full px-4 py-2 rounded-xl input-field bg-white" value="Test_001">
+                        </div>
+
+                        <!-- Divider -->
+                        <hr class="border-gray-200 my-4">
+
+                        <!-- จำนวน -->
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="input-group flex items-center justify-between bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
+                                <label for="totalProd" class="text-sm flex-1 ml-2 text-blue-700 font-semibold">จำนวนผลิตทั้งหมด <br><span class="text-xs text-gray-500 font-normal">(ที่จะขาย + ตัวอย่าง)</span></label>
+                                <div class="flex items-center">
+                                    <input type="number" id="totalProd" value="200" class="w-24 px-3 py-1 text-right rounded-lg input-field bg-blue-50 font-medium" min="1">
+                                    <span class="ml-2 text-sm text-gray-500 w-8">ชิ้น</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group flex items-center justify-between bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
+                                <label for="sampleQty" class="text-sm flex-1 ml-2 text-red-500">หัก สินค้าตัวอย่าง</label>
+                                <div class="flex items-center">
+                                    <input type="number" id="sampleQty" value="2" class="w-24 px-3 py-1 text-right rounded-lg input-field bg-red-50" min="0">
+                                    <span class="ml-2 text-sm text-gray-500 w-8">ชิ้น</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group flex items-center justify-between bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
+                                <label for="defectQty" class="text-sm flex-1 ml-2 text-red-500">หัก สินค้าเสีย-ชำรุด</label>
+                                <div class="flex items-center">
+                                    <input type="number" id="defectQty" value="3" class="w-24 px-3 py-1 text-right rounded-lg input-field bg-red-50" min="0">
+                                    <span class="ml-2 text-sm text-gray-500 w-8">ชิ้น</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <hr class="border-gray-200 my-4">
+
+                        <!-- ต้นทุนคงที่ -->
+                        <div class="space-y-3">
+                            <div class="input-group flex items-center justify-between bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
+                                <label for="prodCost" class="text-sm flex-1 ml-2 text-teal-700">ค่าผลิตสินค้ารวม <br><span class="text-xs text-gray-500 font-normal">(ไม่รวมค่าขนส่ง)</span></label>
+                                <div class="flex items-center">
+                                    <input type="number" id="prodCost" value="3600" class="w-24 px-3 py-1 text-right rounded-lg input-field bg-yellow-50" min="0" step="0.01">
+                                    <span class="ml-2 text-sm text-gray-500 w-8">บาท</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group flex items-center justify-between bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
+                                <label for="pkgCostPerItem" class="text-sm flex-1 ml-2 text-teal-700">ค่าแพ็กเกจจิ้งต่อชิ้น <br><span class="text-xs text-gray-500 font-normal">(เฉพาะสินค้าที่ขายได้)</span></label>
+                                <div class="flex items-center">
+                                    <input type="number" id="pkgCostPerItem" value="2" class="w-24 px-3 py-1 text-right rounded-lg input-field bg-yellow-50" min="0" step="0.01">
+                                    <span class="ml-2 text-sm text-gray-500 text-xs w-12 leading-tight">บาท/ชิ้น</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ค่าใช้จ่ายที่แก้ไข/เพิ่ม/ลบได้ -->
+                        <div class="mt-4 p-3 bg-white/50 rounded-xl border border-teal-100 shadow-sm">
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-sm text-teal-800 font-semibold"><i class="fa-solid fa-list-ul mr-1"></i> ค่าใช้จ่ายเพิ่มเติม (เพิ่ม/ลบ/เปลี่ยนชื่อได้)</label>
+                                <button type="button" id="btnAddCost" class="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-lg hover:bg-teal-200 transition font-medium">
+                                    <i class="fa-solid fa-plus"></i> เพิ่มรายการ
+                                </button>
+                            </div>
+                            <div id="dynamicCostsList" class="space-y-2">
+                                <!-- Dynamic rows will go here -->
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <hr class="border-gray-200 my-4 border-2 border-dashed">
+
+                        <!-- หมวดตั้งราคาขาย (คำนวณ 2 ทาง) -->
+                        <div class="mt-6 p-4 bg-gradient-to-br from-secondary/10 to-blue-50 rounded-xl border border-secondary/30 shadow-sm space-y-3">
+                            <h4 class="font-bold text-secondary flex items-center"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i> ช่วยตั้งราคาขาย</h4>
+                            
+                            <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-green-100 shadow-sm transition-all focus-within:border-green-300">
+                                <label for="desiredProfit" class="text-sm text-gray-700 ml-2 font-medium">1. กำไรที่อยากได้ <span class="text-xs font-normal">(ต่อชิ้น)</span></label>
+                                <div class="flex items-center">
+                                    <input type="number" id="desiredProfit" value="" class="w-24 px-3 py-2 text-right rounded-lg input-field bg-green-50 text-green-700 font-bold border-green-200" min="0" step="0.01">
+                                    <span class="ml-2 text-sm font-semibold text-gray-700 w-8">บาท</span>
+                                </div>
+                            </div>
+
+                            <div class="text-center text-gray-400 text-xs my-0.5 relative">
+                                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300 border-dashed"></div></div>
+                                <span class="relative bg-blue-50 px-2 text-gray-500 font-medium"><i class="fa-solid fa-arrow-down mr-1"></i>หรือ<i class="fa-solid fa-arrow-up ml-1"></i></span>
+                            </div>
+
+                            <div class="flex justify-between items-center bg-white p-2 rounded-lg border-2 border-secondary shadow-md transition-all">
+                                <label for="targetPrice" class="text-base text-secondary font-bold ml-2">2. ราคาที่ควรขายจริง</label>
+                                <div class="flex items-center">
+                                    <input type="number" id="targetPrice" value="60" class="w-24 px-3 py-2 text-right rounded-lg input-field bg-white font-bold text-lg text-accent2 focus:border-secondary" min="0" step="0.01">
+                                    <span class="ml-2 text-sm font-semibold text-gray-700 w-8">บาท</span>
+                                </div>
+                            </div>
+                            
+                            <p class="text-[11px] text-gray-500 text-center mt-2 leading-tight">
+                                *<span class="text-secondary font-semibold">พิมพ์แก้ตัวเลขช่องใดช่องหนึ่ง</span> ระบบจะคำนวณอีกช่องให้ทันที
+                            </p>
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- ส่วนแสดงผลสรุป -->
+                <div class="w-full md:w-1/2 p-6 md:p-8 bg-resultbg/50 relative overflow-hidden">
+                    <!-- Decorative element -->
+                    <div class="absolute top-[-50px] right-[-50px] w-40 h-40 bg-white rounded-full opacity-30 mix-blend-overlay"></div>
+                    <div class="absolute bottom-[-50px] left-[-50px] w-32 h-32 bg-primary rounded-full opacity-5 mix-blend-overlay"></div>
+
+                    <div class="flex items-center mb-6 relative z-10">
+                        <div class="bg-secondary text-white p-2 rounded-lg shadow-md mr-3">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-secondary">สรุปผลการคำนวณ</h3>
+                            <p class="text-xs text-gray-500 mt-1">คำนวณให้อัตโนมัติ ไม่ต้องกรอกส่วนนี้</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/80 backdrop-blur rounded-2xl p-4 shadow-sm border border-white space-y-4 relative z-10">
+                        
+                        <!-- Results List -->
+                        <div class="result-row flex justify-between items-center py-2 px-2 border-b border-gray-100">
+                            <div class="flex items-center text-gray-700">
+                                <span class="w-6 text-center mr-2">💸</span>
+                                <span class="text-sm">ต้นทุนรวมทั้งหมด</span>
+                            </div>
+                            <div class="font-bold text-gray-800">
+                                <span id="resTotalCost" class="text-lg">0.00</span> <span class="text-xs font-normal text-gray-500">บาท</span>
+                            </div>
+                        </div>
+
+                        <div class="result-row flex justify-between items-center py-2 px-2 border-b border-gray-100">
+                            <div class="flex items-center text-gray-700">
+                                <span class="w-6 text-center mr-2">📦</span>
+                                <span class="text-sm">จำนวนชิ้นที่ขายได้จริง</span>
+                            </div>
+                            <div class="font-bold text-blue-600">
+                                <span id="resSellableQty" class="text-lg">0</span> <span class="text-xs font-normal text-gray-500">ชิ้น</span>
+                            </div>
+                        </div>
+
+                        <div class="result-row flex justify-between items-center py-2 px-2 border-b border-gray-100 bg-gray-50 rounded">
+                            <div class="flex items-center text-gray-700">
+                                <span class="w-6 text-center mr-2">💰</span>
+                                <span class="text-sm font-semibold">ต้นทุนรวมเฉลี่ยต่อชิ้น</span>
+                            </div>
+                            <div class="font-bold text-accent2">
+                                <span id="resCostPerItem" class="text-xl">0.00</span> <span class="text-xs font-normal text-gray-500">บาท/ชิ้น</span>
+                            </div>
+                        </div>
+
+                        <div class="result-row flex justify-between items-center py-2 px-2 border-b border-gray-100">
+                            <div class="flex items-center text-gray-700">
+                                <span class="w-6 text-center mr-2 text-accent1"><i class="fa-solid fa-sparkles"></i></span>
+                                <span class="text-sm font-semibold text-green-600">กำไรต่อชิ้น</span>
+                            </div>
+                            <div class="font-bold text-green-600">
+                                <span id="resProfitPerItem" class="text-xl">0.00</span> <span class="text-xs font-normal text-gray-500">บาท/ชิ้น</span>
+                            </div>
+                        </div>
+
+                        <div class="result-row flex justify-between items-center py-2 px-2 border-b border-gray-100">
+                            <div class="flex items-center text-gray-700">
+                                <span class="w-6 text-center mr-2">📈</span>
+                                <span class="text-sm">กำไรต่อยอดขาย (%)</span>
+                            </div>
+                            <div class="font-bold text-primary">
+                                <span id="resProfitMargin" class="text-lg">0.00%</span>
+                            </div>
+                        </div>
+
+                        <div class="result-row flex justify-between items-center py-2 px-2 border-b border-gray-100">
+                            <div class="flex items-center text-gray-700">
+                                <span class="w-6 text-center mr-2">🎯</span>
+                                <span class="text-sm">ขายกี่ชิ้นถึงคืนทุน? <br><span class="text-[10px] text-gray-400 font-normal">(Break-even point)</span></span>
+                            </div>
+                            <div class="font-bold text-purple-600">
+                                <span id="resBreakEven" class="text-lg">0</span> <span class="text-xs font-normal text-gray-500">ชิ้น</span>
+                            </div>
+                        </div>
+
+                        <div class="result-row flex justify-between items-center py-3 px-3 bg-gradient-to-r from-accent1/20 to-secondary/20 rounded-xl mt-2 border border-accent1/50">
+                            <div class="flex items-center text-gray-800">
+                                <span class="w-6 text-center mr-2 text-xl">🏆</span>
+                                <span class="font-bold">กำไรรวมเมื่อขายหมด</span>
+                            </div>
+                            <div class="font-black text-2xl text-accent2">
+                                <span id="resTotalProfit">0.00</span> <span class="text-sm font-normal text-gray-600">บาท</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-8 flex gap-4 justify-center relative z-10">
+                        <button type="button" id="btnReset" class="btn-custom px-6 py-3 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-full flex items-center shadow-md">
+                            <i class="fa-solid fa-rotate-left mr-2"></i> ล้างข้อมูล
+                        </button>
+                        <!-- Save Button -->
+                        <button type="button" id="btnSave" class="btn-custom px-6 py-3 bg-gradient-to-r from-secondary to-blue-400 hover:from-teal-500 hover:to-blue-500 text-white font-bold rounded-full flex items-center shadow-lg">
+                            <i class="fa-solid fa-floppy-disk mr-2"></i> บันทึกข้อมูล
+                        </button>
+                    </div>
+
+                    <!-- Help / Tooltips area -->
+                    <div class="mt-6 bg-white/60 rounded-xl p-4 text-xs text-gray-600 shadow-sm relative z-10">
+                        <h4 class="font-bold text-gray-800 mb-2 flex items-center"><i class="fa-regular fa-lightbulb text-accent1 mr-1"></i> วิธีอ่านผลลัพธ์</h4>
+                        <ul class="space-y-1 list-disc list-inside">
+                            <li><strong class="text-gray-700">ชิ้นที่ขายได้จริง</strong> = ผลิตทั้งหมด หัก(ตัวอย่าง+ของเสีย)</li>
+                            <li><strong class="text-gray-700">ต้นทุนรวมเฉลี่ย</strong> = ต้นทุนทุกอย่าง(รวมแพ็กเกจ) หารด้วยจำนวนที่ขายได้จริง</li>
+                            <li><strong class="text-gray-700">ขายคืนทุน</strong> = ต้องขายกี่ชิ้น ถึงจะได้เงินค่าใช้จ่ายคืนทั้งหมด หลังจากนั้นคือกำไร</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        
+        <!-- รายการที่บันทึก -->
+        <div class="mt-8 glass-panel overflow-hidden border-t-8 border-t-accent1 shadow-xl transition-all duration-300">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="bg-accent1 text-gray-800 p-2 rounded-lg shadow-md mr-3">
+                            <i class="fa-solid fa-box-archive"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">รายการสินค้าที่บันทึกไว้ (<span id="savedCount">0</span>)</h3>
+                    </div>
+                </div>
+                <div id="savedItemsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="text-gray-400 text-sm italic col-span-full">ยังไม่มีข้อมูลที่บันทึก...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-xl z-50 flex items-center">
+            <i class="fa-solid fa-circle-check text-green-400 mr-2"></i>
+            <span id="toastMsg">คัดลอกข้อมูลแล้ว!</span>
+        </div>
+
+    </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Input Elements (Fixed fields) ---
+            const inputs = {
+                totalProd: document.getElementById('totalProd'),
+                sampleQty: document.getElementById('sampleQty'),
+                defectQty: document.getElementById('defectQty'),
+                prodCost: document.getElementById('prodCost'),
+                pkgCostPerItem: document.getElementById('pkgCostPerItem'),
+                desiredProfit: document.getElementById('desiredProfit'),
+                targetPrice: document.getElementById('targetPrice')
+            };
+
+            // --- Result Elements ---
+            const results = {
+                totalCost: document.getElementById('resTotalCost'),
+                sellableQty: document.getElementById('resSellableQty'),
+                costPerItem: document.getElementById('resCostPerItem'),
+                profitPerItem: document.getElementById('resProfitPerItem'),
+                profitMargin: document.getElementById('resProfitMargin'),
+                breakEven: document.getElementById('resBreakEven'),
+                totalProfit: document.getElementById('resTotalProfit')
+            };
+
+            // --- Dynamic Costs State ---
+            const defaultDynamicCosts = [
+                { id: 'dc_1', name: 'ค่าจัดส่งจากโรงงาน หรือ ร้าน มายังArtist', amount: 120 },
+                { id: 'dc_2', name: 'ค่าออกแบบสินค้า / ค่าแรงนักวาด', amount: 1200 },
+                { id: 'dc_3', name: 'ค่าใช้จ่ายแฝง (เช่น ค่าแรงบรรจุสินค้า / ค่าเดินทาง)', amount: 300 },
+                { id: 'dc_4', name: 'ค่าโฆษณา / ค่าฝากวาง / ค่าเช่าบูธ', amount: 800 }
+            ];
+            
+            // ใช้เก็บรายการต้นทุนเสริม ณ ปัจจุบัน
+            let currentDynamicCosts = JSON.parse(JSON.stringify(defaultDynamicCosts));
+
+            // --- Format Currency ---
+            const formatMoney = (amount) => {
+                return parseFloat(amount).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            };
+
+            const formatNumber = (num) => {
+                return parseInt(num).toLocaleString('th-TH');
+            };
+
+            // --- Render Dynamic Costs (สร้าง UI สำหรับช่องที่ลบ/เพิ่มได้) ---
+            const renderDynamicCosts = () => {
+                const container = document.getElementById('dynamicCostsList');
+                container.innerHTML = '';
+                
+                if (currentDynamicCosts.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-400 text-sm py-2 italic">ไม่มีค่าใช้จ่ายเพิ่มเติม</div>';
+                }
+                
+                currentDynamicCosts.forEach((item, index) => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center space-x-2 bg-yellow-50 p-2 rounded-xl border border-yellow-100 shadow-sm group transition-all";
+                    
+                    row.innerHTML = `
+                        <input type="text" class="dyn-name flex-1 px-3 py-1.5 text-xs md:text-sm rounded-lg input-field bg-white" value="${item.name}" placeholder="ระบุชื่อค่าใช้จ่าย..." data-index="${index}">
+                        <div class="flex items-center">
+                            <input type="number" class="dyn-amount w-20 px-2 py-1.5 text-right text-sm rounded-lg input-field bg-white" value="${item.amount}" min="0" step="0.01" data-index="${index}">
+                            <span class="ml-1 text-xs text-gray-500 w-6">บาท</span>
+                        </div>
+                        <button type="button" class="btn-delete-cost text-red-300 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors w-8 flex justify-center items-center" data-index="${index}" title="ลบรายการนี้">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    `;
+                    container.appendChild(row);
+                });
+
+                // ผูก Event ให้แต่ละช่องเวลากรอก
+                document.querySelectorAll('.dyn-name').forEach(el => {
+                    el.addEventListener('input', (e) => {
+                        currentDynamicCosts[e.target.dataset.index].name = e.target.value;
+                    });
+                });
+                
+                document.querySelectorAll('.dyn-amount').forEach(el => {
+                    el.addEventListener('input', (e) => {
+                        currentDynamicCosts[e.target.dataset.index].amount = parseFloat(e.target.value) || 0;
+                        calculate('costs'); // คำนวณใหม่ทุกครั้งที่ตัวเลขเปลี่ยน (แจ้งว่ามาจากต้นทุน)
+                    });
+                    el.addEventListener('focus', function() { this.select(); });
+                });
+
+                // ผูก Event ให้ปุ่มลบ
+                document.querySelectorAll('.btn-delete-cost').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        const idx = e.currentTarget.dataset.index;
+                        currentDynamicCosts.splice(idx, 1);
+                        renderDynamicCosts(); // วาด UI ใหม่
+                        calculate('costs'); // คำนวณใหม่
+                    });
+                });
+            };
+
+            // Event เพิ่มรายการใหม่
+            document.getElementById('btnAddCost').addEventListener('click', () => {
+                currentDynamicCosts.push({
+                    id: 'dc_' + Date.now(),
+                    name: '',
+                    amount: 0
+                });
+                renderDynamicCosts();
+                // โฟกัสไปที่ช่องที่เพิ่งสร้างใหม่
+                const nameInputs = document.querySelectorAll('.dyn-name');
+                if(nameInputs.length > 0) nameInputs[nameInputs.length - 1].focus();
+            });
+
+            // --- Calculation Logic ---
+            const calculate = (source = 'costs') => {
+                // Parse fixed inputs 
+                const totalProd = parseInt(inputs.totalProd.value) || 0;
+                const sampleQty = parseInt(inputs.sampleQty.value) || 0;
+                const defectQty = parseInt(inputs.defectQty.value) || 0;
+                
+                const prodCost = parseFloat(inputs.prodCost.value) || 0;
+                const pkgCostPerItem = parseFloat(inputs.pkgCostPerItem.value) || 0;
+
+                // รวมผลลัพธ์จากช่องต้นทุนเสริมทั้งหมด
+                const totalDynamicCost = currentDynamicCosts.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+
+                // 1. จำนวนชิ้นที่ขายได้จริง
+                let sellableQty = totalProd - sampleQty - defectQty;
+                if (sellableQty < 0) sellableQty = 0;
+
+                // 2. ต้นทุนรวมทั้งหมด
+                const totalPackagingCost = pkgCostPerItem * sellableQty;
+                const totalCost = prodCost + totalPackagingCost + totalDynamicCost;
+
+                // 3. ต้นทุนรวมเฉลี่ยต่อชิ้น
+                let costPerItem = 0;
+                if (sellableQty > 0) {
+                    costPerItem = totalCost / sellableQty;
+                }
+
+                // ==========================================
+                // ระบบตั้งราคาขายแบบ 2 ทาง (Two-way Calculation)
+                // ==========================================
+                const validCost = isNaN(costPerItem) ? 0 : costPerItem;
+
+                if (source === 'desiredProfit') {
+                    // ถ้ายูสเซอร์พิมพ์แก้ช่อง "กำไรที่อยากได้" -> ให้คำนวณ "ราคาที่ควรขาย" ใหม่
+                    const desired = parseFloat(inputs.desiredProfit.value) || 0;
+                    inputs.targetPrice.value = (validCost + desired).toFixed(2);
+                } else {
+                    // ถ้ายูสเซอร์แก้ราคาขาย หรือ แก้ต้นทุนต่างๆ -> ให้คำนวณ "กำไรที่ได้" ใหม่
+                    const tp = parseFloat(inputs.targetPrice.value) || 0;
+                    inputs.desiredProfit.value = (tp - validCost).toFixed(2);
+                }
+
+                // นำราคาขาย ณ ปัจจุบัน มาใช้คำนวณต่อ
+                const targetPrice = parseFloat(inputs.targetPrice.value) || 0;
+
+                // 4. กำไรต่อชิ้น (สำหรับแสดงผล)
+                const profitPerItem = targetPrice - costPerItem;
+
+                // 5. กำไรต่อยอดขาย %
+                let profitMargin = 0;
+                if (targetPrice > 0) {
+                     profitMargin = (profitPerItem / targetPrice) * 100;
+                }
+
+                // 6. จุดคุ้มทุน
+                let breakEvenQty = 0;
+                if (targetPrice > 0) {
+                    breakEvenQty = Math.ceil(totalCost / targetPrice);
+                }
+
+                // 7. กำไรรวมเมื่อขายหมด
+                const totalRevenue = targetPrice * sellableQty;
+                const totalProfit = totalRevenue - totalCost;
+
+                // --- Update UI ---
+                results.sellableQty.textContent = formatNumber(sellableQty);
+                results.totalCost.textContent = formatMoney(totalCost);
+                results.costPerItem.textContent = formatMoney(costPerItem);
+                
+                results.profitPerItem.textContent = formatMoney(profitPerItem);
+                results.profitPerItem.className = profitPerItem >= 0 ? "text-xl text-green-600" : "text-xl text-red-500";
+                
+                results.profitMargin.textContent = profitMargin.toFixed(2) + "%";
+                results.profitMargin.className = profitMargin >= 0 ? "text-lg text-primary" : "text-lg text-red-500";
+
+                results.breakEven.textContent = formatNumber(breakEvenQty);
+
+                results.totalProfit.textContent = formatMoney(totalProfit);
+                results.totalProfit.className = totalProfit >= 0 ? "text-2xl text-accent2 font-black" : "text-2xl text-red-600 font-black";
+            };
+
+            // Add input event listeners to Fixed inputs
+            Object.values(inputs).forEach(input => {
+                // แยก event listener เพื่อดูว่ายูสเซอร์กำลังแก้ไขช่องไหน
+                if (input === inputs.desiredProfit) {
+                    input.addEventListener('input', () => calculate('desiredProfit'));
+                } else if (input === inputs.targetPrice) {
+                    input.addEventListener('input', () => calculate('targetPrice'));
+                } else {
+                    input.addEventListener('input', () => calculate('costs'));
+                }
+                
+                input.addEventListener('focus', function() { this.select(); });
+            });
+
+            // Reset Button
+            document.getElementById('btnReset').addEventListener('click', () => {
+                const form = document.getElementById('calculatorForm');
+                form.reset();
+                
+                // Reset fixed defaults
+                inputs.totalProd.value = 200;
+                inputs.sampleQty.value = 2;
+                inputs.defectQty.value = 3;
+                inputs.prodCost.value = 3600;
+                inputs.pkgCostPerItem.value = 2;
+                inputs.targetPrice.value = 60;
+                document.getElementById('productName').value = "Test_001";
+
+                // Reset dynamic fields back to default array
+                currentDynamicCosts = JSON.parse(JSON.stringify(defaultDynamicCosts));
+                
+                renderDynamicCosts();
+                calculate('costs'); // บังคับคำนวณใหม่โดยยึดราคาขายเป็นหลัก
+                showToast("ล้างข้อมูลเรียบร้อยแล้ว");
+            });
+
+            // --- In-Memory Storage & Logic ---
+            let savedData = {}; // เก็บข้อมูลด้วยชื่อสินค้าเป็น Key
+
+            // Save Data
+            document.getElementById('btnSave').addEventListener('click', () => {
+                const pName = document.getElementById('productName').value.trim();
+                
+                if (!pName || pName === '') {
+                    showToast("กรุณาตั้งชื่อสินค้าก่อนบันทึก!");
+                    document.getElementById('productName').focus();
+                    return;
+                }
+
+                // เก็บค่าคงที่ และค่า Dynamic Costs ลง Object
+                savedData[pName] = {
+                    name: pName,
+                    totalProd: inputs.totalProd.value,
+                    sampleQty: inputs.sampleQty.value,
+                    defectQty: inputs.defectQty.value,
+                    prodCost: inputs.prodCost.value,
+                    pkgCostPerItem: inputs.pkgCostPerItem.value,
+                    targetPrice: inputs.targetPrice.value,
+                    dynamicCosts: JSON.parse(JSON.stringify(currentDynamicCosts)), // Clone data
+                    sellableQty: results.sellableQty.textContent,
+                    profitPerItem: results.profitPerItem.textContent,
+                };
+                
+                renderSavedItems();
+                showToast(`บันทึกข้อมูล "${pName}" เรียบร้อยแล้ว!`);
+            });
+
+            // Render Saved Items List
+            function renderSavedItems() {
+                const list = document.getElementById('savedItemsList');
+                const countSpan = document.getElementById('savedCount');
+                const keys = Object.keys(savedData);
+                
+                countSpan.textContent = keys.length;
+
+                if (keys.length === 0) {
+                    list.innerHTML = '<div class="text-gray-400 text-sm italic col-span-full">ยังไม่มีข้อมูลที่บันทึก...</div>';
+                    return;
+                }
+
+                list.innerHTML = '';
+                keys.forEach(key => {
+                    const data = savedData[key];
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-secondary hover:shadow-md transition-all cursor-pointer flex justify-between items-center group relative overflow-hidden";
+                    
+                    const decor = document.createElement('div');
+                    decor.className = "absolute left-0 top-0 bottom-0 w-1 bg-secondary";
+                    card.appendChild(decor);
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = "flex-1 pl-2 overflow-hidden";
+                    contentDiv.innerHTML = `
+                        <h4 class="font-bold text-gray-800 text-base leading-tight mb-2 truncate" title="${data.name}">${data.name}</h4>
+                        <div class="flex space-x-3 text-xs text-gray-500">
+                            <span title="ขายได้จริง"><i class="fa-solid fa-box text-blue-400"></i> ${data.sellableQty}</span>
+                            <span title="ราคาขายเป้าหมาย"><i class="fa-solid fa-tag text-green-500"></i> ฿${data.targetPrice}</span>
+                            <span title="กำไรต่อชิ้น" class="${parseFloat(data.profitPerItem.replace(/,/g,'')) >= 0 ? 'text-green-600' : 'text-red-500'}">
+                                <i class="fa-solid fa-coins"></i> ${data.profitPerItem}
+                            </span>
+                        </div>
+                    `;
+                    
+                    contentDiv.addEventListener('click', () => {
+                        loadItem(key);
+                    });
+                    card.appendChild(contentDiv);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = "w-8 h-8 rounded-full bg-red-50 text-red-500 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-500 hover:text-white shrink-0 ml-2";
+                    deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can text-sm"></i>';
+                    deleteBtn.title = "ลบข้อมูล";
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        delete savedData[key];
+                        renderSavedItems();
+                        showToast(`ลบข้อมูล "${key}" แล้ว`);
+                    });
+                    card.appendChild(deleteBtn);
+
+                    list.appendChild(card);
+                });
+            }
+
+            // Load Item into form (ดึงข้อมูลมาแก้ไข)
+            function loadItem(key) {
+                const data = savedData[key];
+                if(!data) return;
+
+                // โหลดข้อมูลช่อง Fixed
+                inputs.totalProd.value = data.totalProd;
+                inputs.sampleQty.value = data.sampleQty;
+                inputs.defectQty.value = data.defectQty;
+                inputs.prodCost.value = data.prodCost;
+                inputs.pkgCostPerItem.value = data.pkgCostPerItem;
+                inputs.targetPrice.value = data.targetPrice;
+                document.getElementById('productName').value = data.name;
+
+                // โหลดข้อมูลช่อง Dynamic
+                currentDynamicCosts = JSON.parse(JSON.stringify(data.dynamicCosts || []));
+                renderDynamicCosts();
+
+                calculate('costs'); // คำนวณใหม่เพื่อให้ช่องกำไรอัปเดต
+                showToast(`ดึงข้อมูล "${key}" แล้ว! แก้ไขตัวเลขและกดบันทึกทับได้เลย`);
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // Toast Function
+            function showToast(message) {
+                const toast = document.getElementById('toast');
+                document.getElementById('toastMsg').textContent = message;
+                
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 3000);
+            }
+
+            // Initial calculation & UI render on load
+            renderDynamicCosts();
+            calculate();
+        });
+    </script>
+</body>
+</html>
